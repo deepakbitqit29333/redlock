@@ -148,7 +148,7 @@ export class Lock {
     public readonly redlock: Redlock,
     public readonly resources: string[],
     public readonly value: string,
-    public readonly attempts: ReadonlyArray<Promise<ExecutionStats>>,
+    public attempts: ReadonlyArray<Promise<ExecutionStats>>,
     public expiration: number
   ) {}
 
@@ -375,7 +375,6 @@ export default class Redlock extends EventEmitter {
       throw new Error("Duration must be an integer value in milliseconds.");
     }
 
-    // The lock has already expired.
     if (existing.expiration < Date.now()) {
       throw new ExecutionError("Cannot extend an already-expired lock.", []);
     }
@@ -387,25 +386,17 @@ export default class Redlock extends EventEmitter {
       settings
     );
 
-    // Invalidate the existing lock.
-    existing.expiration = 0;
+    // Update the existing lock instead of creating a new one
+    existing.attempts = attempts;
 
-    // Add 2 milliseconds to the drift to account for Redis expires precision,
-    // which is 1 ms, plus the configured allowable drift factor.
     const drift =
       Math.round(
-        (settings?.driftFactor ?? this.settings.driftFactor) * duration
+        ((settings && typeof settings.driftFactor === "number") ? settings.driftFactor : this.settings.driftFactor) * duration
       ) + 2;
 
-    const replacement = new Lock(
-      this,
-      existing.resources,
-      existing.value,
-      attempts,
-      start + duration - drift
-    );
+    existing.expiration = start + duration - drift;
 
-    return replacement;
+    return existing;
   }
 
   /**
