@@ -391,7 +391,9 @@ export default class Redlock extends EventEmitter {
 
     const drift =
       Math.round(
-        ((settings && typeof settings.driftFactor === "number") ? settings.driftFactor : this.settings.driftFactor) * duration
+        (settings && typeof settings.driftFactor === "number"
+          ? settings.driftFactor
+          : this.settings.driftFactor) * duration
       ) + 2;
 
     existing.expiration = start + duration - drift;

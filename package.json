@@ -1,6 +1,6 @@
 {
   "name": "deepaksearchtap-redlock",
-  "version": "v5.0.0-beta.2",
+  "version": "0.0.1",
   "description": "A node.js redlock implementation for distributed redis locks",
   "license": "MIT",
   "author": {
